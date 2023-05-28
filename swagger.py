@@ -1,5 +1,4 @@
 import requests
-import json
 
 baseurl = "https://petstore.swagger.io/v2/"
 
@@ -16,3 +15,4 @@ res = requests.post(f"{baseurl}pet", headers={'accept': 'application/json', 'Con
                           'status': 'available'})
 
 print(res.text)
+
