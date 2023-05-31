@@ -28,7 +28,7 @@ class PetFriends:
 
     def get_list_of_pets(self, auth_key: json, filter: str = "") -> json:
         """Метод делает запрос к API сервера и возвращает статус запроса и результат в формате JSON
-        со списком наденных питомцев, совпадающих с фильтром. На данный момент фильтр может иметь
+        со списком найденных питомцев, совпадающих с фильтром. На данный момент фильтр может иметь
         либо пустое значение - получить список всех питомцев, либо 'my_pets' - получить список
         собственных питомцев"""
 
@@ -59,6 +59,49 @@ class PetFriends:
         headers = {'auth_key': auth_key['key'], 'Content-Type': data.content_type}
 
         res = requests.post(self.base_url + 'api/pets', headers=headers, data=data)
+        status = res.status_code
+        result = ""
+        try:
+            result = res.json()
+        except json.decoder.JSONDecodeError:
+            result = res.text
+        print(result)
+        return status, result
+
+    def add_new_pet_simple(self, auth_key: json, name: str, animal_type: str,
+                    age: str) -> json:
+        """Метод отправляет (постит) на сервер данные о добавляемом питомце без загрузки фотографии, возвращает статус
+        запроса на сервер и результат в формате JSON с данными добавленного питомца"""
+
+        data = MultipartEncoder(
+            fields={
+                'name': name,
+                'animal_type': animal_type,
+                'age': age})
+
+        headers = {'auth_key': auth_key['key'], 'Content-Type': data.content_type}
+
+        res = requests.post(self.base_url + 'api/create_pet_simple', headers=headers, data=data)
+        status = res.status_code
+        result = ""
+        try:
+            result = res.json()
+        except json.decoder.JSONDecodeError:
+            result = res.text
+        print(result)
+        return status, result
+
+    def add_photo(self, auth_key: str, pet_id: str, pet_photo: str) -> json:
+        """Метод отправляет (постит) на сервер фото питомца к имеющейся записи, возвращает статус запроса на сервер
+        и результат в формате JSON с данными добавленного питомца"""
+
+        data = MultipartEncoder(
+            fields={'pet_id': pet_id,
+                    'pet_photo': (pet_photo, open(pet_photo, 'rb'), 'image/jpeg')})
+
+        headers = {'auth_key': auth_key['key'], 'Content-Type': data.content_type}
+
+        res = requests.post(self.base_url + 'api/pets/set_photo/' + pet_id, headers=headers, data=data)
         status = res.status_code
         result = ""
         try:
@@ -104,3 +147,33 @@ class PetFriends:
         except json.decoder.JSONDecodeError:
             result = res.text
         return status, result
+
+    def login(self, email: str, passw: str) -> json:
+        """Метод проводит авторизацию в приложении с указанными данными пользователя"""
+
+        data = MultipartEncoder(
+            fields={
+                'email': email,
+                'pass': passw})
+
+        headers = {'Content-Type': data.content_type}
+
+        res = requests.post(self.base_url + 'login', headers=headers, data=data)
+
+        status = res.status_code
+        return status
+
+    def reg(self, name: str, email: str, passw: str) -> json:
+        """Метод проводит регистрацию в приложении с указанными данными пользователя"""
+
+        data = MultipartEncoder(
+            fields={
+                'name': name,
+                'email': email,
+                'pass': passw})
+
+        headers = {'Content-Type': data.content_type}
+
+        res = requests.post(self.base_url + 'new_user', headers=headers, data=data)
+        status = res.status_code
+        return status
